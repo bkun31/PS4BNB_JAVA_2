@@ -27,4 +27,13 @@ public class TxOutputs {
     public String toString() {
         return "locking script : " + Arrays.toString(locking) + "; amount : " + amount;
     }
+
+    public String hash(){
+        String lock = "";
+        for (String str : locking)
+        {
+            lock = lock + str;
+        }
+        return HashUtil.applySha256(lock + amount);
+    }
 }

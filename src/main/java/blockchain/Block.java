@@ -7,7 +7,7 @@ import java.util.Arrays;
 
 public class Block {
 	private String hashPrecedent;
-	private String listeTransaction[];
+	private Transactions[] listeTransaction;
 	private int nbTransaction;
 	private int Nonce;
 	private String merkel;
@@ -18,12 +18,12 @@ public class Block {
 	
 	/**
 	 * @param String hashPrecedent
-	 * @param String[] listeTransaction
+	 * @param Transactions[] listeTransaction
 	 * @param nbTransaction : nombre de transaction
 	 * @param numBlock Numero du block dans la chain
 	 * @param User mineur du block
 	 */
-	public Block(String hashPrecedent, String[] listeTransaction, int nbTransaction, int numBlock, User user) {
+	public Block(String hashPrecedent, Transactions[] listeTransaction, int nbTransaction, int numBlock, User user) {
 		this.hashPrecedent = hashPrecedent;
 		this.listeTransaction = listeTransaction;
 		this.nbTransaction = nbTransaction;
@@ -59,7 +59,24 @@ public class Block {
 	 * @return String merkel
 	 */
 	public String merkel() {
-		return merkelHash(listeTransaction, nbTransaction);
+		String tab[] = new String[3];
+		String in = "";
+		String out = "";
+		for (int i = 0; i<nbTransaction; i++){
+			for (int j=0; j<listeTransaction[i].inList.size(); j++){
+				in = in + listeTransaction[i].inList.get(j).toString();
+			}
+			for (int j=0; j<listeTransaction[i].outList.size(); j++){
+				out = out + listeTransaction[i].outList.get(j).toString();
+			}
+			tab[i]= dateToString(listeTransaction[i].timestamp) + listeTransaction[i].inCount + in + out;
+			in = "";
+			out = "";
+		}
+		if (nbTransaction == 1){
+			return HashUtil.applySha256(tab[0]);
+		}
+		return merkelHash(tab, nbTransaction);
 	}
 	
 	/**
@@ -105,9 +122,12 @@ public class Block {
 		System.out.println("Current hash : " + hashBlock);
 		System.out.println("Timestamp : " + dateToString(date));
 		System.out.println("Nb transaction : " + nbTransaction);
-		System.out.println("Liste transaction {");
-		System.out.println(stringListeTx() + "}");
-		System.out.println("Merkel tree root : " + merkel);
+		System.out.println("\nListe transaction {");
+		for (int i = 0; i<nbTransaction; i++)
+		{
+			listeTransaction[i].txDump();
+		}
+		System.out.println("\nMerkel tree root : " + merkel);
 		System.out.println("Miner : " + user.getNom());
 		System.out.println("Nonce : " + Nonce);
 	}
@@ -144,7 +164,7 @@ public class Block {
 	/**
 	 * @return the listeTransaction
 	 */
-	public String[] getListeTransaction() {
+	public Transactions[] getListeTransaction() {
 		return listeTransaction;
 	}
 

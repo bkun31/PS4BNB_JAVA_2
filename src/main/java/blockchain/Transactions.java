@@ -17,6 +17,11 @@ public class Transactions {
     public ArrayList<TxOutputs> outList = new ArrayList<>();
     public String comment;
 
+    public Transactions() {
+        this.timestamp = new Date();
+        this.comment = "";
+    }
+
     public Transactions(String comment) {
         this.timestamp = new Date();
         this.comment = comment;

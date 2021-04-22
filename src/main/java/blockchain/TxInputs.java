@@ -39,5 +39,4 @@ public class TxInputs {
                 + "; unlocking script : " + Arrays.toString(this.unlochking) + "; Comment : " + this.comment
                 + "; amount : " + this.amount;
     }
-
 }
