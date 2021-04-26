@@ -10,7 +10,7 @@ import java.util.Arrays;
 public class TxOutputs {
     
     public String[] locking; /* script */
-    public long amount; /* mopntant de l´UTXO */
+    public long amount; /* montant de l´UTXO */
     
     
     /**
@@ -28,6 +28,11 @@ public class TxOutputs {
         return "locking script : " + Arrays.toString(locking) + "; amount : " + amount;
     }
 
+    /**
+     * Calcule le hash de l´utxo en fonction de son script de verouillage et son montant.
+     * 
+     * @return Le hash de l´utxo.
+     */
     public String hash(){
         String lock = "";
         for (String str : locking)

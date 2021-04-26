@@ -27,6 +27,9 @@ public class Transactions {
         this.comment = comment;
     }
 
+    /**
+     * Affiche sur la sortie standard le contenu de la transaction.
+     */
     public void txDump() {
         System.out.println("Transaction date : " + Block.dateToString(timestamp) + "\nNumber of transactions inputs : "
                 + this.inCount + "\nTransactions inputs list :");

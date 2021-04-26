@@ -6,9 +6,17 @@ import java.util.Random;
 import java.util.ArrayList;
 import java.util.Stack;
 
+/**
+ * @author Bastien Canto bastien.canto@univ-tlse3.fr
+ * @author Omar Kired omar.kired@univ-tlse3.fr
+ * @author Bilel Besseghieur bilel.besseghieur@univ-tlse3.fr
+ */
+
 public class BlockChain {
 	// constante
-	private static final int NB_TRANSACTION_MAX = 50;
+	private static final long MIN_TX = 100000000L;
+	private static final long MAX_TX = 10000000000L;
+	private static final int MAX_USER = 100;
 
 	// attribut
 	private ArrayList<Block> chaine;
@@ -16,14 +24,14 @@ public class BlockChain {
 	private int numBlock;
 	private Queue<String> queue;
 	private LinkedList<TxOutputs> globalUtxoList;
-	private User listeUser[] = new User[100];
+	private User listeUser[] = new User[MAX_USER];
 
 	// parametre par defaut
 	private int blockMax = -1;
 	private boolean print = false; // n'affiche pas les block a la fin
 	private int difficulte = 4;
 	private int nbBlockDiv = 10; // division par deux tout les 10 block
-	private long recompence = 50000000000L; // 50 bnb
+	private long recompence = bnbToSato(50); // 50 bnb
 	private float fee = 0.05f;
 
 	/**
@@ -35,13 +43,13 @@ public class BlockChain {
 		this.globalUtxoList = new LinkedList<>();
 		this.chaine = new ArrayList<Block>();
 		this.queue = new LinkedList<String>();
-		// Si plus de 100 User : set a 100
-		if (nbUser > 100) {
-			System.out.println("Max User : 100");
-			this.nbUser = 100;
+		// Si plus de MAX_USER User : set a MAX_USER
+		if (nbUser > MAX_USER) {
+			System.out.println("Max user depasser");
+			this.nbUser = MAX_USER - 1;
 		}
 		// Genere un tableau de User
-		for (int i = 0; i < nbUser; i++) {
+		for (int i = 0; i < this.nbUser; i++) {
 			listeUser[i] = new User("User" + (i + 1));
 		}
 	}
@@ -81,16 +89,15 @@ public class BlockChain {
 		Block block = createGenesis(); // init le block genesis
 		block.hashBlock(difficulte); // hash le genesis
 		chaine.add(block); // met le genesis en position 0 dans la blockchaine
-		numBlock++;
-		System.out.println(
-				"Block Mined!!! : " + block.getHashBlock() + " n° : " + numBlock + " Nonce = " + block.getNonce());
+		System.out.println("Block Mined!!! : " + block.getHashBlock() + " n° : " + block.getNumBlock() + " Nonce = " + block.getNonce());
+		numBlock++;		
 
 		// --------------- Helico ----------------
 
 		System.out.println("----------------- Hélicoptère -----------------");
 		Random random = new Random();
 		// Helico pour tout les user
-		for (int i = 0; i < nbUser; i++) {
+		for (int i = 0; i < nbUser && numBlock<blockMax; i++) {
 			/* On crée une transaction coinbase */
 			Transactions tx = new Transactions("coinbase");
 			TxOutputs utxo = new TxOutputs(new String[] { "tx sign " + listeUser[i].getNom(),
@@ -107,7 +114,7 @@ public class BlockChain {
 			chaine.add(block);
 			numBlock++;
 			System.out.println(
-					"Block Mined!!! : " + block.getHashBlock() + " n° : " + numBlock + " Nonce = " + block.getNonce());
+					"Block Mined!!! : " + block.getHashBlock() + " n° : " + block.getNumBlock() + " Nonce = " + block.getNonce());
 		}
 
 		// --------------- Inflation ----------------
@@ -135,6 +142,12 @@ public class BlockChain {
 				System.out.println("-------------------");
 			}
 		}
+		// --------------- Verif Chain ----------------
+		if (verifChain()) {
+			System.out.println("OKKKKKKKKK");
+		} else {
+			System.out.println("KOOOOOOOOO");
+		}
 	}
 
 	/**
@@ -151,59 +164,76 @@ public class BlockChain {
 		long amountTx;
 		long amountFees;
 
+		/*
+		 * on prend une tx dans la file et on recherche les utxos de l´utilisateur
+		 * source du montant de la tx + les frais éventuelle
+		 */
 		tx = queue.poll();
 		tabUser = stringTxToUser(tx);
 		amountTx = stringTxToLong(tx);
-		amountFees = (long) (amountTx * (1 + fee));
+		amountFees = (long) (amountTx * fee);
 		utxoInputs = searchUtxo(tabUser[0], amountTx + amountFees);
+
+		/* si l´utilisateur source à des fonds suffisants, on creé la transaction */
 		if (utxoInputs != null) {
 			Transactions market = new Transactions("market");
 			Transactions fees = new Transactions("fees");
 			long change = amountUtxoList(utxoInputs) - (amountTx + amountFees);
+			int nbTx = 2;
 
+			/*
+			 * on creé l´utxo correspondant au montant de la tx source pour l´utilisateur
+			 * destination, on crée aussi un utxo de change si besoin
+			 */
 			market.inList = utxoInputs;
 			market.inCount = utxoInputs.size();
-			market.outList.add(new TxOutputs(new String[] { "tx sign " + tabUser[1].getNom() + ">",
-					"pubKey " + tabUser[1].getNom(), "DUP", "HASH" }, amountTx));
+			market.outList.add(new TxOutputs(
+					new String[] { "tx sign " + tabUser[1].getNom(), "pubKey " + tabUser[1].getNom(), "DUP", "HASH" },
+					amountTx));
 			globalUtxoList.add(market.outList.get(0));
 			if (change != 0) {
-				market.outList
-						.add(new TxOutputs(
-								new String[] { "tx sign " + tabUser[0].getNom(),
-										"pubKey " + tabUser[0].getNom(), "DUP", "HASH" },
-								change - (amountTx + amountFees)));
+				market.outList.add(new TxOutputs(new String[] { "tx sign " + tabUser[0].getNom(),
+						"pubKey " + tabUser[0].getNom(), "DUP", "HASH" }, change));
 				globalUtxoList.add(market.outList.get(1));
 			}
 			market.outCount = market.outList.size();
 
+			/* on crée un utxo de frais pour le mineur */
 			fees.inList = utxoInputs;
 			fees.inCount = utxoInputs.size();
 			fees.outList.add(new TxOutputs(
-					new String[] { "tx sign " + user.getNom(), "pubKey " + user.getNom(), "DUP", "HASH" },
-					amountFees));
+					new String[] { "tx sign " + user.getNom(), "pubKey " + user.getNom(), "DUP", "HASH" }, amountFees));
 			globalUtxoList.add(fees.outList.get(0));
 			fees.outCount = 1;
+
+			/*
+			 * on ajoute dans la liste transactions du bloc,les tx market, fees et
+			 * récompense si phase d´inflation (plus bas)
+			 */
 			tabTx[0] = market;
 			tabTx[1] = fees;
-			// Si en phase d'inflation ajouter a recompence
+
+			// Si en phase d'inflation on crée la tx coinbase
 			if (recompence != 0) {
 				Transactions coinbase = new Transactions("coinbase");
 				coinbase.inCount = 0;
-				coinbase.outList.add(new TxOutputs(new String[] { "tx sign " + user.getNom(),
-						"pubKey " + user.getNom(), "DUP", "HASH" }, recompence));
+				coinbase.outList.add(new TxOutputs(
+						new String[] { "tx sign " + user.getNom(), "pubKey " + user.getNom(), "DUP", "HASH" },
+						recompence));
 				coinbase.outCount = 1;
 				globalUtxoList.add(coinbase.outList.get(0));
 				coinbase.outCount = 1;
 				tabTx[2] = coinbase;
+				nbTx++;
 			}
 
 			// creation et hash block
-			Block block = new Block(chaine.get(numBlock - 1).getHashBlock(), tabTx, tabTx.length, numBlock, user);
+			Block block = new Block(chaine.get(numBlock - 1).getHashBlock(), tabTx, nbTx, numBlock, user);
 			block.hashBlock(difficulte);
 			chaine.add(block);
 			numBlock++;
 			System.out.println(
-					"Block Mined!!! : " + block.getHashBlock() + " n° : " + numBlock + " Nonce = " + block.getNonce());
+					"Block Mined!!! : " + block.getHashBlock() + " n° : " + block.getNumBlock() + " Nonce = " + block.getNonce());
 		}
 	}
 
@@ -221,14 +251,14 @@ public class BlockChain {
 	}
 
 	/**
-	 * @return String transaction de deux user et transaction aleatoire
+	 * @return String transaction aléatoire entre 2 utilisateurs
 	 */
 	public String generateTransaction() {
 		Random random = new Random();
 		String name1 = listeUser[random.nextInt(nbUser)].getNom();
 		String name2 = listeUser[random.nextInt(nbUser)].getNom();
-		int satobnb = (random.nextInt(999)+1 * 100000000); // genere un montant pour la transaction entre 1 et 1000
-
+		long satobnb = MIN_TX + (long) (Math.random() * (MAX_TX - MIN_TX)); // genere un montant pour la transaction
+																			// entre MIN_TX et MAX_TX
 		while (name1 == name2) { // Verifie que les deux nom soit different
 			name2 = listeUser[random.nextInt(nbUser)].getNom();
 		}
@@ -239,11 +269,18 @@ public class BlockChain {
 	 * @return true si toute la chaine est valide
 	 */
 	public boolean verifChain() {
-		// re-Hash tout les block de la chain et verifie si le hash tu block et le hash
-		// precedent correspondent
+		for (int i = 0; i < numBlock; i++) {
+			if (!chaine.get(i).getHashBlock().equals(chaine.get(i).hashBlockNonce())) {
+				return false;
+			}
+		}
 		return true;
 	}
 
+	/**
+	 * @param String transaction
+	 * @return User[] tableau de User de la transaction en paramétre
+	 */
 	public User[] stringTxToUser(String tx) {
 		User tab[] = new User[2];
 		for (int i = 0; i < nbUser; i++) {
@@ -256,10 +293,19 @@ public class BlockChain {
 		return tab;
 	}
 
+	/**
+	 * @param String transaction
+	 * @return Long montant de la transaction en paramétre
+	 */
 	public long stringTxToLong(String tx) {
 		return Long.parseLong(tx.split(" ")[2]);
 	}
 
+	/**
+	 * @param String[] Lock Script
+	 * @param String[] Unlock Script
+	 * @return Boolean true si le script et valide
+	 */
 	public static boolean unlockScript(String[] lock, String[] unlock) {
 		Stack<String> stack = new Stack<String>();
 		// concatenation lock+unlock
@@ -298,40 +344,50 @@ public class BlockChain {
 		return bool;
 	}
 
+	/**
+	 * Renvoie la liste des UTXO (txOutputs) du user ou la somme est superieur au
+	 * montant en paramétre et les suprime de la global liste
+	 * 
+	 * @param User
+	 * @param Long montant
+	 * @return ArrayListe<TxInputs> d'UTXO (Txoutputs)
+	 */
 	private ArrayList<TxInputs> searchUtxo(User user, long montant) {
 		ArrayList<TxInputs> liste = new ArrayList<TxInputs>();
-		ArrayList<Integer> indice = new ArrayList<Integer>();
 		int i = 0;
-		int solde = 0;
+		long solde = 0;
+		// Cherche les Txoutputs dans la GlobalList et les ajoute dans une liste
 		while (i < globalUtxoList.size() && solde < montant) {
 			if (globalUtxoList.get(i).locking[1].substring(7).equals(user.getNom())) {
 				TxOutputs utxo = globalUtxoList.get(i);
-				TxInputs txIn = new TxInputs(utxo.hash(), 0, utxo.amount, 3, new String[] {HashUtil.applySha256("PubK "+ user.getNom()), "EQ", "VER"}, "market");
+				TxInputs txIn = new TxInputs(utxo.hash(), 0, utxo.amount, 3,
+						new String[] { HashUtil.applySha256("PubK " + user.getNom()), "EQ", "VER" }, "market");
 				liste.add(txIn);
-				indice.add(i);
 				solde += globalUtxoList.get(i).amount;
 			}
 			i++;
 		}
+		// Si le user n'a pas assez d'UTXO return null
 		if (montant > solde) {
 			return null;
 		}
-		for (i = indice.size() - 1; i >= 0; i--) {
+		// Supprime les UTXO de la GlobalList
+		for (i = 0; i < liste.size(); i++) {
 			globalUtxoList.remove(liste.get(i));
 		}
 		return liste;
 	}
 
 	/**
-	 * @param long Bnb
-	 * @return long satoBnb
+	 * @param Long Bnb
+	 * @return Long satoBnb
 	 */
 	public long bnbToSato(long bnb) {
 		return bnb * 100000000;
 	}
 
 	/**
-	 * @param long satoBnb
+	 * @param Long satoBnb
 	 * @return double Bnb
 	 */
 	public double satoToBnb(long sato) {
@@ -400,4 +456,21 @@ public class BlockChain {
 		}
 	}
 
+	/**
+	 * @param fee the fee to set
+	 */
+	public void setFee(float fee) {
+		if (fee > 1 || fee < 0) {
+			System.out.println("Frais invalide");
+		} else {
+			this.fee = fee;
+		}
+	}
+
+	/**
+	 * @return the chaine
+	 */
+	public ArrayList<Block> getChaine() {
+		return chaine;
+	}
 }
