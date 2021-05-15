@@ -83,7 +83,7 @@ public class BlockChain {
 	}
 
 	/**
-	 * Cr�e le genesis, fait l'helicopere money, phase de marché et print les block
+	 * Crée le genesis, fait l'helicopere money, phase de marché et print les block
 	 */
 	public void start() {
 		System.out.println("Difficulty = " + difficulte);
