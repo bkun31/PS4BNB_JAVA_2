@@ -99,7 +99,7 @@ public class BlockChain {
 
 		// --------------- Helico ----------------
 
-		System.out.println("----------------- H�licopt�re -----------------");
+		System.out.println("----------------- Hélicoptére -----------------");
 		Random random = new Random();
 		// Helico pour tout les user
 		for (int i = 0; i < nbUser && numBlock<=blockMax; i++) {
