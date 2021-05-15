@@ -153,7 +153,7 @@ public class BlockChain {
 	 * Prend des transactions dans la queue, creer un block, mine le block, le met
 	 * dans la blockChain
 	 * 
-	 * @param User mineur du block
+	 * @param user mineur du block
 	 */
 	public void minage(User user) {
 		Transactions[] tabTx = new Transactions[3];
@@ -256,8 +256,7 @@ public class BlockChain {
 		Random random = new Random();
 		String name1 = listeUser[random.nextInt(nbUser)].getNom();
 		String name2 = listeUser[random.nextInt(nbUser)].getNom();
-		long satobnb = MIN_TX + (long) (Math.random() * (MAX_TX - MIN_TX)); // genere un montant pour la transaction
-																			// entre MIN_TX et MAX_TX
+		long satobnb = MIN_TX + (long) (Math.random() * (MAX_TX - MIN_TX)); // genere un montant pour la transaction entre MIN_TX et MAX_TX
 		while (name1 == name2) { // Verifie que les deux nom soit different
 			name2 = listeUser[random.nextInt(nbUser)].getNom();
 		}
@@ -347,8 +346,8 @@ public class BlockChain {
 	 * Renvoie la liste des UTXO (txOutputs) du user ou la somme est superieur au
 	 * montant en paramètre et les suprime de la global liste
 	 * 
-	 * @param User
-	 * @param Long montant
+	 * @param user
+	 * @param montant
 	 * @return ArrayListe<TxInputs> d'UTXO (Txoutputs)
 	 */
 	private ArrayList<TxInputs> searchUtxo(User user, long montant) {
@@ -391,7 +390,7 @@ public class BlockChain {
 	}
 
 	/**
-	 * @param Long Bnb
+	 * @param bnb Bnb
 	 * @return Long satoBnb
 	 */
 	public long bnbToSato(long bnb) {
@@ -399,7 +398,7 @@ public class BlockChain {
 	}
 
 	/**
-	 * @param Long satoBnb
+	 * @param sato long
 	 * @return double Bnb
 	 */
 	public double satoToBnb(long sato) {
