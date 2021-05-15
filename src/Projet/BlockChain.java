@@ -94,7 +94,7 @@ public class BlockChain {
 		Block block = createGenesis(); // init le block genesis
 		block.hashBlock(difficulte); // hash le genesis
 		chaine.add(block); // met le genesis en position 0 dans la blockchaine
-		System.out.println("Block Mined!!! : " + block.getHashBlock() + " n� : " + block.getNumBlock() + " Nonce = " + block.getNonce());
+		System.out.println("Block Mined!!! : " + block.getHashBlock() + " n° : " + block.getNumBlock() + " Nonce = " + block.getNonce());
 		numBlock++;		
 
 		// --------------- Helico ----------------
@@ -119,7 +119,7 @@ public class BlockChain {
 			chaine.add(block);
 			numBlock++;
 			System.out.println(
-					"Block Mined!!! : " + block.getHashBlock() + " n� : " + block.getNumBlock() + " Nonce = " + block.getNonce());
+					"Block Mined!!! : " + block.getHashBlock() + " n° : " + block.getNumBlock() + " Nonce = " + block.getNonce());
 		}
 
 		// --------------- Inflation ----------------
@@ -232,7 +232,7 @@ public class BlockChain {
 			chaine.add(block);
 			numBlock++;
 			System.out.println(
-					"Block Mined!!! : " + block.getHashBlock() + " n� : " + block.getNumBlock() + " Nonce = " + block.getNonce());
+					"Block Mined!!! : " + block.getHashBlock() + " n° : " + block.getNumBlock() + " Nonce = " + block.getNonce());
 		}
 	}
 
@@ -260,7 +260,7 @@ public class BlockChain {
 		while (name1 == name2) { // Verifie que les deux nom soit different
 			name2 = listeUser[random.nextInt(nbUser)].getNom();
 		}
-		return (name1 + " envoie " + satobnb + " satoBnb � " + name2);
+		return (name1 + " envoie " + satobnb + " satoBnb à " + name2);
 	}
 
 	/**
