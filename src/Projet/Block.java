@@ -22,11 +22,11 @@ public class Block {
 	private int numBlock;
 
 	/**
-	 * @param String         hashPrecedent
-	 * @param Transactions[] listeTransaction
+	 * @param hashPrecedent String
+	 * @param listeTransaction Transactions[]
 	 * @param nbTransaction  : nombre de transaction
-	 * @param numBlock       Numero du block dans la chain
-	 * @param User           mineur du block
+	 * @param numBlock Numero du block dans la chain
+	 * @param user mineur du block
 	 */
 	public Block(String hashPrecedent, Transactions[] listeTransaction, int nbTransaction, int numBlock, User user) {
 		this.hashPrecedent = hashPrecedent;
@@ -44,7 +44,7 @@ public class Block {
 	 * Hash le block en incrementant le nonce jusqu'a que le block commence par X
 	 * fois "0"
 	 * 
-	 * @param Int difficulté
+	 * @param difficulte int
 	 * @return String Hash du block
 	 */
 	public String hashBlock(int difficulte) {
